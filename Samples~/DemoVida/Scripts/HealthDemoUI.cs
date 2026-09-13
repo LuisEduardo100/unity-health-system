@@ -4,25 +4,22 @@ using UnityEngine.UI;
 namespace Game.Health.Demo
 {
     /// <summary>
-    /// Demo do modulo de vida. Ela nao contem regra nenhuma: so escuta o que o Health avisa
-    /// e traduz para barra, numero e log na tela.
+    /// Cola da demo: liga os botoes ao modulo de vida e manda o HUD e o log reagirem.
+    /// Nenhuma regra de vida mora aqui. Se esta classe sumir, o modulo continua inteiro.
     /// </summary>
     public class HealthDemoUI : MonoBehaviour
     {
         [SerializeField] HealthComponent alvo;
-        [SerializeField] Image preenchimento;
-        [SerializeField] Text numero;
-        [SerializeField] Text registro;
+        [SerializeField] HealthHud hud;
+        [SerializeField] ActionLog log;
 
         [SerializeField] Button botaoDano;
         [SerializeField] Button botaoCura;
         [SerializeField] Button botaoMatar;
         [SerializeField] Button botaoReviver;
-        [SerializeField] Button botaoSalvar;
-        [SerializeField] Button botaoCarregar;
 
-        const string Chave = "demo.vida";
-        readonly System.Collections.Generic.Queue<string> linhas = new System.Collections.Generic.Queue<string>();
+        const int Dano = 10;
+        const int Cura = 15;
 
         // Start, nao Awake: garante que o Awake do HealthComponent ja rodou e o Model existe.
         void Start()
@@ -30,61 +27,54 @@ namespace Game.Health.Demo
             if (alvo == null) { Debug.LogError("HealthDemoUI sem alvo."); return; }
 
             alvo.Model.Changed += AoMudar;
-            alvo.Model.Died += () => Log("morreu");
-            alvo.Model.Revived += () => Log("reviveu");
+            alvo.Model.Died += AoMorrer;
+            alvo.Model.Revived += AoReviver;
 
-            botaoDano.onClick.AddListener(() => alvo.TakeDamage(10));
-            botaoCura.onClick.AddListener(() => alvo.Heal(15));
+            botaoDano.onClick.AddListener(() => alvo.TakeDamage(Dano));
+            botaoCura.onClick.AddListener(() => alvo.Heal(Cura));
             botaoMatar.onClick.AddListener(() => alvo.TakeDamage(9999));
             botaoReviver.onClick.AddListener(() => alvo.Revive());
-            botaoSalvar.onClick.AddListener(Salvar);
-            botaoCarregar.onClick.AddListener(Carregar);
 
-            Desenhar(alvo.Current, alvo.Max);
-            Log("cena iniciada");
+            hud.Desenhar(alvo.Current, alvo.Max);
+            log.Registrar(ActionLog.Tipo.Sistema, $"vida iniciada em {alvo.Current} de {alvo.Max}");
         }
 
         void OnDestroy()
         {
-            if (alvo != null && alvo.Model != null) alvo.Model.Changed -= AoMudar;
+            if (alvo == null || alvo.Model == null) return;
+            alvo.Model.Changed -= AoMudar;
+            alvo.Model.Died -= AoMorrer;
+            alvo.Model.Revived -= AoReviver;
         }
 
         void AoMudar(HealthChange c)
         {
-            Desenhar(c.Current, c.Max);
-            Log(c.IsHeal ? $"curou {c.Delta}" : $"tomou {-c.Delta}");
+            // O HealthComponent emite o estado inicial no Start dele, com delta zero.
+            // Se a ordem de Start cair a favor dele, esse evento chega aqui: so redesenha, nao loga.
+            if (c.Delta == 0) { hud.Desenhar(c.Current, c.Max); return; }
+
+            if (c.IsDamage)
+            {
+                hud.AnimarDano(c.Current, c.Max);
+                log.Registrar(ActionLog.Tipo.Dano, $"tomou {-c.Delta}, restam {c.Current}");
+            }
+            else
+            {
+                hud.AnimarCura(c.Current, c.Max);
+                log.Registrar(ActionLog.Tipo.Cura, $"curou {c.Delta}, agora {c.Current}");
+            }
         }
 
-        void Desenhar(int atual, int max)
+        void AoMorrer()
         {
-            float n = max <= 0 ? 0f : (float)atual / max;
-            preenchimento.fillAmount = n;
-            preenchimento.color = n > 0.5f ? new Color(0.30f, 0.78f, 0.35f)
-                                : n > 0.25f ? new Color(0.95f, 0.75f, 0.18f)
-                                            : new Color(0.85f, 0.26f, 0.26f);
-            numero.text = $"{atual} / {max}";
+            hud.AnimarMorte(alvo.Max);
+            log.Registrar(ActionLog.Tipo.Morte, "vida chegou a zero");
         }
 
-        /// <summary>Mostra na pratica o contrato que o modulo de save vai usar.</summary>
-        void Salvar()
+        void AoReviver()
         {
-            PlayerPrefs.SetString(Chave, JsonUtility.ToJson(alvo.Capture()));
-            PlayerPrefs.Save();
-            Log("salvou");
-        }
-
-        void Carregar()
-        {
-            if (!PlayerPrefs.HasKey(Chave)) { Log("nada salvo ainda"); return; }
-            alvo.Restore(JsonUtility.FromJson<HealthState>(PlayerPrefs.GetString(Chave)));
-            Log("carregou");
-        }
-
-        void Log(string s)
-        {
-            linhas.Enqueue(s);
-            while (linhas.Count > 7) linhas.Dequeue();
-            registro.text = string.Join("\n", linhas);
+            hud.AnimarRevive(alvo.Current, alvo.Max);
+            log.Registrar(ActionLog.Tipo.Revive, $"voltou com {alvo.Current}");
         }
     }
 }

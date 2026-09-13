@@ -189,3 +189,57 @@ Montar por codigo: cena de Unity e um YAML enorme e ilegivel, entao duas pessoas
 `Samples~` em vez de `Assets`: a pasta com til no fim e ignorada pelo Unity ate alguem importar pelo Package Manager. Ou seja, quem instala o modulo nao carrega a demo junto no projeto de producao, mas pode trazer com um clique quando quiser ver funcionando.
 
 **Detalhe que importa:** os arquivos `.meta` foram gerados com a demo dentro de `Assets` e so depois movidos para `Samples~`, com os `.meta` junto. Sem isso, cada import geraria GUID novo e a cena perderia as referencias dos botoes.
+
+---
+
+## D17 Salvar e carregar saem da demo, mas ficam no modulo
+
+**Escolha:** a cena perdeu os botoes Salvar e Carregar. `Capture`, `Restore` e `IHealthSnapshot` continuam no modulo, intactos.
+
+**Alternativa descartada:** manter a demo mostrando um save funcionando com `PlayerPrefs`.
+
+**Motivo:** salvar e o territorio de outro integrante do grupo. A demo estava implementando um pedaco do trabalho dele, ainda que de mentira, e isso confunde quem olha: parece que o modulo de vida tem responsabilidade de persistencia. A capacidade continua exposta pelo contrato, entao quando o colega chegar ele pluga sem eu mexer em nada.
+
+**Principio por tras:** demonstrar a interface nao exige implementar o consumidor dela.
+
+---
+
+## D18 Coracao gerado por equacao, nao por arquivo de imagem
+
+**Escolha:** o sprite do coracao nasce em tempo de execucao, de uma equacao implicita.
+
+```
+(x2 + y2 - 1)3 - x2 * y3 <= 0
+```
+
+Cada pixel da textura e testado nessa desigualdade. Dentro da curva, opaco. Fora, transparente.
+
+**Alternativa descartada:** baixar ou desenhar um PNG de coracao e commitar no repositorio.
+
+**Motivo, tres razoes.**
+
+Primeira, repositorio sem asset binario. Imagem no git nao tem diff util, incha o historico e obrigaria configurar Git LFS so por causa de um icone.
+
+Segunda, a forma fica parametrizada. Mudar resolucao, proporcao ou grossura e mudar numero no codigo, nao reabrir editor de imagem.
+
+Terceira, e assunto de computacao grafica: a borda serrilharia se cada pixel fosse so um teste dentro ou fora. O sprite usa **supersampling 4 por 4**, ou seja, 16 amostras por pixel, e o alfa final e a fracao de amostras que caiu dentro da curva. Isso e antialiasing por area de cobertura, o mesmo principio do MSAA.
+
+**Custo:** a textura e gerada uma vez, fica em cache estatico, e o sprite branco e tintado pelo `Image.color`. Um unico sprite serve para coracao cheio, vazio, cinza de morte e flash de dano.
+
+---
+
+## D19 HUD no canto e registro de acoes com hierarquia visual
+
+**Escolha:** vida no canto superior direito, registro no canto inferior esquerdo, botoes embaixo ao centro. Titulo removido.
+
+**Alternativa descartada:** tudo centralizado com um titulo explicando o que e.
+
+**Motivo:** HUD de jogo fica na periferia da tela porque o centro pertence a acao. Titulo escrito na tela e muleta de demo, jogo nenhum tem. Tirar forcou a interface a se explicar sozinha.
+
+**No registro, tres decisoes de leitura:**
+
+Etiqueta colorida por tipo, porque cor e lida antes da palavra. Hora em cada linha, para dar nocao de ritmo entre eventos. E as linhas antigas esmaecendo por opacidade, para o olho cair sempre na mais recente sem precisar procurar.
+
+**Detalhe tecnico:** o painel inteiro e um unico componente de texto com rich text, nao um objeto por linha. Criar e destruir objeto a cada evento geraria lixo de memoria num caminho que roda a cada clique.
+
+**Bug que quase passou:** tag de cor aninhada no Unity nao multiplica alfa, a de dentro sobrescreve a de fora. O esmaecimento so funciona porque o alfa e calculado e escrito em cada pedaco da linha na hora de redesenhar.
