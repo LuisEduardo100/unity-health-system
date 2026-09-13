@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Game.Health.Demo
+namespace Game.Health
 {
     /// <summary>
     /// Gera o coracao por equacao implicita, em tempo de execucao.

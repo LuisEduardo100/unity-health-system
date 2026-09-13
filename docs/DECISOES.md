@@ -257,3 +257,74 @@ Etiqueta colorida por tipo, porque cor e lida antes da palavra. Hora em cada lin
 Havia redundancia tripla no mesmo instante: o rotulo do botao dizia 10, a barra encolhia, o numero caia para 90 e o log escrevia 10. Quatro maneiras de contar a mesma coisa competindo pela atencao.
 
 **Sobre o rotulo do botao:** valor escrito no botao tambem envelhece mal. No dia em que o dano virar 12, ou variar por arma, o rotulo passa a mentir e ninguem lembra de trocar. Nome de acao nao envelhece.
+
+---
+
+## D21 A versao passa a ser 6000.6.0f1, revogando a D13
+
+**Escolha:** o grupo fica em `6000.6.0f1`.
+
+**O que isso revoga:** a D13, que tinha escolhido a LTS `6000.3.24f1`.
+
+**Motivo:** quando a D13 foi tomada, nao existia projeto do grupo. Existe agora, no repositorio Skenta, e nasceu em 6.6 porque e o botao padrao do Unity Hub. Projeto Unity sobe de versao sem dor e desce quebrado, entao quem tem que ceder somos nos. Insistir na LTS custaria reinstalacao para tres pessoas e um downgrade que o Unity nao faz direito, para ganhar estabilidade que ainda nao nos fez falta.
+
+**O que sobrevive da D13:** o argumento de que a versao tem que ser identica para os quatro. O que mudou foi qual, nao o principio.
+
+**Registro honesto:** a previsao de que o padrao do Hub venceria estava escrita na propria pergunta que originou a D13. Perdemos a aposta para o caminho de menor atrito, que e como quase sempre termina.
+
+---
+
+## D22 O Player.cs vira fachada, com a API intacta
+
+**Escolha:** o `Player.cs` continua expondo `maxHealth`, `TakeDamage`, `Heal`, `GetCurrentHealth`, `LoadHealth` e `OnHealthChanged` com as mesmas assinaturas. Por dentro, todos passaram a chamar o `HealthComponent`.
+
+**Alternativa descartada:** deixar a vida inline dele e somar a nossa ao lado.
+
+**Motivo:** dois sistemas de vida no mesmo jogo e pior que qualquer um dos dois sozinho, porque ninguem sabe qual manda e os dois divergem no primeiro bug. Como a API publica nao mudou, nenhum colega precisa alterar uma linha: quem chamava `Player.TakeDamage` continua chamando, quem lia `GetCurrentHealth` continua lendo.
+
+**O que mudou de comportamento, e precisa ser dito:**
+
+Antes, `Heal` funcionava em jogador morto, porque era so um `Mathf.Clamp` entre zero e o maximo. Agora nao funciona: pelo modulo, curar e diferente de ressuscitar, e para trazer de volta existe `Revive`, que foi adicionado ao `Player`. Isso afeta `UseItem("Potion")` usado com o jogador morto.
+
+E uma mudanca deliberada, coberta por teste (`MortoNaoRecebeCura`), mas e mudanca. Se o grupo quiser que pocao ressuscite, e uma linha no `UseItem`, nao uma mudanca no modulo.
+
+---
+
+## D23 O HUD escuta o EventManager, nunca o jogador
+
+**Escolha:** o `HealthHudBinder` assina `EventManager.OnHealthChanged`. O `Player` publica ali atraves do `HealthComponent`.
+
+**Alternativa descartada:** o HUD procurar o `Player` na cena e assinar o evento dele direto.
+
+**Motivo:** o `EventManager` e a parte do Vinicius no trabalho, e ele ja tinha `OnHealthChanged` e `TriggerHealthChanged` prontos, so que ninguem publicava neles. Passar por ali conecta o sistema dele em vez de furar por fora, e entrega o desacoplamento de verdade: o HUD nao tem referencia ao jogador, nao procura ele na cena e nao sabe que ele existe. Se a vida passar a ser de um chefe, de um veiculo ou de uma porta destrutivel, o HUD nao muda.
+
+**Camadas que isso cria, e que o compilador garante:**
+
+```
+Game.Health.Core    regra pura, proibida de ver o Unity
+Game.Health.Unity   adaptador MonoBehaviour
+Game.Health.View    HUD de coracoes, so desenha, nao conhece regra
+Assembly-CSharp     Player, EventManager, HealthHudBinder, codigo do jogo
+```
+
+O modulo nao pode importar `EventManager`, porque o asmdef dele tem lista de referencias vazia. Quem faz a ponte e o codigo do jogo, que e o unico lado que pode conhecer os dois. A dependencia aponta para dentro, nunca para fora.
+
+---
+
+## D24 HUD reusavel sai da demo e entra no modulo
+
+**Escolha:** `HealthHud` e `HeartSprite` sairam de `Samples~` e viraram `Runtime/View`, numa terceira assembly, `Game.Health.View`.
+
+**Alternativa descartada:** copiar os dois arquivos para dentro do projeto do grupo.
+
+**Motivo:** copia vira divergencia. Corrigido num lado, quebrado no outro, e ninguem lembra qual e o original. Como o HUD nao conhece nenhuma regra de vida, so recebe numeros e desenha, ele e reusavel de verdade e pertence ao modulo.
+
+**Por que uma assembly separada em vez de juntar na `Game.Health.Unity`:** o HUD precisa de `UnityEngine.UI`. Quem quiser so a regra de vida, sem interface, nao deveria ser obrigado a arrastar uGUI junto. Separar deixa a escolha com quem consome.
+
+---
+
+## D25 Entrega por pull request, nunca commit direto
+
+**Escolha:** a integracao foi para a branch `feat/gerenciamento-de-vida` e vira pull request no repositorio do Vinicius.
+
+**Motivo:** o repositorio e do grupo e o `Player.cs` e arquivo de outra pessoa. Commit direto na main tira dele a chance de revisar uma mudanca que altera comportamento, mesmo que para melhor. O pull request deixa a discussao escrita, e a mudanca do `Heal` em jogador morto precisa ser vista por ele antes de entrar.

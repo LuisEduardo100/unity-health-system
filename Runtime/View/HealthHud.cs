@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Game.Health.Demo
+namespace Game.Health
 {
     /// <summary>
     /// HUD de vida: fileira de coracoes e barra fina.
