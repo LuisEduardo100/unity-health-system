@@ -1,0 +1,8 @@
+{
+  "name": "com.luiseduardo.health",
+  "version": "0.1.0",
+  "displayName": "Player Health",
+  "description": "Gerenciamento de vida do jogador. Nucleo em C# puro, adaptador Unity e contratos de integracao.",
+  "unity": "6000.0",
+  "author": { "name": "Luis Eduardo" }
+}

@@ -1,0 +1,35 @@
+# Pastas geradas pelo Unity. Sao cache e podem pesar gigabytes.
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]serSettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# Projeto de teste local, nao vai para o repositorio do modulo
+[Ss]andbox/
+
+# Arquivos de IDE
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.suo
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Crash logs
+sysinfo.txt
+crashlytics-build.properties
