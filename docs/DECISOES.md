@@ -125,3 +125,51 @@ Formato: decisao, alternativa descartada, motivo.
 **Alternativa descartada:** configurar depois, quando doer.
 
 **Motivo:** LFS so vale para arquivo commitado a partir do momento em que a regra existe. Se um asset pesado entrar antes, ele fica no historico do git para sempre. Configurar antes do primeiro commit e barato, corrigir depois exige reescrever historico.
+
+---
+
+## D13 Unity 6.3 LTS, versao 6000.3.24f1
+
+**Escolha:** todo o grupo usa `6000.3.24f1`.
+
+**Alternativa descartada:** `6000.6.0f1`, que era o botao padrao do Unity Hub e ja estava instalado.
+
+**Motivo:** 6.3 e Long Term Support, com suporte ate dezembro de 2027 e ecossistema de pacotes verificado. A 6.6 e Tech Stream, e o sufixo `f1` indica a primeira build estavel dela, ou seja, a menos testada. Num trabalho com quatro maquinas diferentes, bug de versao custa mais caro que recurso novo. Detalhe que pesou: projeto Unity sobe de versao sem dor, mas desce quebrado, entao escolher errado agora nao teria volta barata.
+
+---
+
+## D14 Projeto sandbox fora do repositorio
+
+**Escolha:** o projeto Unity de teste vive em `unity-health-sandbox`, pasta IRMA do repositorio, nunca dentro dele.
+
+**Alternativa descartada:** commitar o projeto Unity junto com o modulo.
+
+**Motivo:** o repositorio entrega um pacote, nao um jogo. Commitar um projeto inteiro traria `ProjectSettings` e cenas que iam colidir com o projeto do grupo no merge. O sandbox e descartavel: serve so para eu abrir o editor, rodar os testes e ver a barra de vida mexendo. Quem clonar o repo recria em minutos, ou simplesmente instala o pacote no projeto dele.
+
+**Como o sandbox enxerga o modulo:** `"com.luiseduardo.health": "file:../../unity-health-system"` no `manifest.json`. E um link, nao uma copia: editar o codigo do modulo reflete no editor na hora.
+
+**Erro cometido e corrigido:** na primeira tentativa o sandbox ficou DENTRO da pasta do pacote. O Unity resolveu o pacote e encontrou o proprio projeto la dentro, importando em loop. Regra que fica: pasta de pacote nunca pode conter um projeto Unity.
+
+---
+
+## D15 Template 2D podado: fora inputsystem e collab-proxy
+
+**Escolha:** o sandbox usa o template 2D do editor menos dois pacotes.
+
+**Alternativa descartada:** usar o template como veio.
+
+**Motivo:** o template 2D embutido no editor 6.3 e da linha 6.1 e fixa `com.unity.inputsystem 1.12.0` e `com.unity.collab-proxy 2.6.0`, velhos demais para a API do 6.3. Os dois quebraram a compilacao antes de qualquer teste rodar, com erro dentro do proprio pacote da Unity, nao no meu codigo. Nenhum dos dois faz falta aqui: a demo usa botao de UI, e controle de versao a gente faz por git.
+
+**Aprendizado que vale para o grupo:** template embutido no editor nem sempre acompanha a versao do editor. Se o projeto do grupo der erro de compilacao logo no primeiro open, olhar primeiro para `Library/PackageCache` antes de suspeitar do codigo proprio.
+
+---
+
+## Resultado da primeira execucao
+
+12 testes, 12 verdes, 0,054 segundos, no editor 6000.3.24f1 em modo headless.
+Comando usado, que serve tambem para integracao continua depois:
+
+```
+Unity.exe -batchmode -nographics -projectPath <sandbox> \
+  -runTests -testPlatform EditMode -testResults results.xml -logFile unity.log
+```
