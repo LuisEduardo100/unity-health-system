@@ -47,9 +47,25 @@ Ver `docs/INTEGRACAO.md`. Resumo:
 | Save | `IHealthSnapshot` com `Capture` e `Restore` |
 | Inventario | `IHealable` para pocao, `SetMaxHealth` para item de vida maxima |
 
+## Ver funcionando
+
+Package Manager, selecione Player Health, aba Samples, Import em "Demo de vida".
+Abra `DemoVida.unity` e de Play. Botoes de dano, cura, matar, reviver, salvar e carregar.
+
+Para remontar a cena do zero: menu Game, Health, Construir cena demo.
+
 ## Testes
 
 Window, General, Test Runner, aba EditMode, Run All.
+
+Headless, o mesmo comando que serve para integracao continua:
+
+```
+Unity.exe -batchmode -nographics -projectPath <projeto> \
+  -runTests -testPlatform EditMode -testResults results.xml -logFile unity.log
+```
+
+Ultima execucao: 12 testes, 12 verdes, no 6000.3.24f1.
 
 ## Decisoes
 
