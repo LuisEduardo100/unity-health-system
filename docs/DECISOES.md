@@ -173,3 +173,19 @@ Comando usado, que serve tambem para integracao continua depois:
 Unity.exe -batchmode -nographics -projectPath <sandbox> \
   -runTests -testPlatform EditMode -testResults results.xml -logFile unity.log
 ```
+
+---
+
+## D16 Cena demo montada por codigo, entregue como Sample do pacote
+
+**Escolha:** um script de editor (`ConstruirCenaDemo`) monta a cena, e o resultado vai para `Samples~/DemoVida`.
+
+**Alternativa descartada:** montar a cena arrastando objeto no editor e commitar o `.unity` direto.
+
+**Motivo, em duas partes.**
+
+Montar por codigo: cena de Unity e um YAML enorme e ilegivel, entao duas pessoas mexendo geram conflito de merge impossivel de resolver na mao. Um script que constroi a cena e codigo normal, com diff revisavel, e nasce identico em qualquer maquina. Se a cena corromper, basta rodar o menu Game, Health, Construir cena demo.
+
+`Samples~` em vez de `Assets`: a pasta com til no fim e ignorada pelo Unity ate alguem importar pelo Package Manager. Ou seja, quem instala o modulo nao carrega a demo junto no projeto de producao, mas pode trazer com um clique quando quiser ver funcionando.
+
+**Detalhe que importa:** os arquivos `.meta` foram gerados com a demo dentro de `Assets` e so depois movidos para `Samples~`, com os `.meta` junto. Sem isso, cada import geraria GUID novo e a cena perderia as referencias dos botoes.
