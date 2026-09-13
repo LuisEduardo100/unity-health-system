@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace Game.Health.Demo
 {
     /// <summary>
-    /// HUD de vida: fileira de coracoes, barra fina e numero.
+    /// HUD de vida: fileira de coracoes e barra fina.
     /// So desenha e anima. Nenhuma regra de vida mora aqui.
     /// </summary>
     public class HealthHud : MonoBehaviour
@@ -15,7 +15,6 @@ namespace Game.Health.Demo
         [SerializeField] Image[] fundos;
         [SerializeField] Image[] frentes;
         [SerializeField] Image barra;
-        [SerializeField] Text numero;
 
         static readonly Color Cheio  = new Color(0.93f, 0.26f, 0.36f);
         static readonly Color Vazio  = new Color(0.21f, 0.14f, 0.18f);
@@ -64,8 +63,6 @@ namespace Game.Health.Demo
             foreach (var img in frentes) img.color = tom;
             barra.color = morto ? Morto : (n <= 0.25f ? Alerta : Cheio);
 
-            numero.text = $"{atual} / {max}";
-            numero.color = morto ? Morto : (n <= 0.25f ? Alerta : new Color(0.88f, 0.90f, 0.94f));
             opacidade.alpha = morto ? 0.55f : 1f;
 
             AjustarBatida(n, morto);

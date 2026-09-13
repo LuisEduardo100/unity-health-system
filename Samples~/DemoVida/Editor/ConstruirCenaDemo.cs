@@ -48,7 +48,7 @@ public static class ConstruirCenaDemo
         var arredondado = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
 
         // ---------- HUD no canto superior direito ----------
-        var hudGO = Vazio(canvasGO.transform, "HUD", new Vector2(1, 1), new Vector2(-36, -28), new Vector2(300, 118));
+        var hudGO = Vazio(canvasGO.transform, "HUD", new Vector2(1, 1), new Vector2(-36, -28), new Vector2(300, 86));
         var opacidade = hudGO.gameObject.AddComponent<CanvasGroup>();
 
         var fundos = new Image[Coracoes];
@@ -76,9 +76,6 @@ public static class ConstruirCenaDemo
         barra.fillOrigin = (int)Image.OriginHorizontal.Left;
         barra.fillAmount = 1f;
 
-        var numero = Texto(hudGO, "Numero", "100 / 100", fonte, 20,
-            new Vector2(1, 1), new Vector2(0, -90), new Vector2(larguraBarra, 24), TextAnchor.MiddleRight);
-
         var hud = hudGO.gameObject.AddComponent<HealthHud>();
 
         // ---------- registro de acoes no canto inferior esquerdo ----------
@@ -103,14 +100,14 @@ public static class ConstruirCenaDemo
         var log = painel.gameObject.AddComponent<ActionLog>();
 
         // ---------- botoes embaixo, no centro ----------
-        string[] nomes = { "Dano 10", "Cura 15", "Matar", "Reviver" };
+        string[] nomes = { "Dano", "Cura", "Matar", "Reviver" };
         var botoes = new Button[nomes.Length];
         for (int i = 0; i < nomes.Length; i++)
             botoes[i] = BotaoUI(canvasGO.transform, nomes[i], fonte, arredondado,
                 new Vector2(0.5f, 0), new Vector2(-285f + i * 190f, 56), new Vector2(170, 48));
 
         // ---------- ligacoes ----------
-        Ligar(hud, ("grupo", hudGO), ("opacidade", opacidade), ("barra", barra), ("numero", numero));
+        Ligar(hud, ("grupo", hudGO), ("opacidade", opacidade), ("barra", barra));
         LigarArray(hud, "fundos", fundos);
         LigarArray(hud, "frentes", frentes);
 

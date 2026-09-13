@@ -243,3 +243,17 @@ Etiqueta colorida por tipo, porque cor e lida antes da palavra. Hora em cada lin
 **Detalhe tecnico:** o painel inteiro e um unico componente de texto com rich text, nao um objeto por linha. Criar e destruir objeto a cada evento geraria lixo de memoria num caminho que roda a cada clique.
 
 **Bug que quase passou:** tag de cor aninhada no Unity nao multiplica alfa, a de dentro sobrescreve a de fora. O esmaecimento so funciona porque o alfa e calculado e escrito em cada pedaco da linha na hora de redesenhar.
+
+---
+
+## D20 Numero exato so no registro, nunca no HUD
+
+**Escolha:** o HUD perdeu o texto `100 / 100`, e os botoes perderam o valor do rotulo. Viraram `Dano`, `Cura`, `Matar`, `Reviver`. Quanto entrou de dano aparece so na linha do registro.
+
+**Alternativa descartada:** mostrar vida atual sobre maxima na tela o tempo todo.
+
+**Motivo:** cada informacao deve aparecer uma vez, no lugar onde ela e util. Durante a acao o jogador precisa saber **quanto sobrou**, e cinco coracoes respondem isso mais rapido que ler dois numeros e dividir. Quanto exatamente entrou de dano e pergunta de depois, e depois e o registro.
+
+Havia redundancia tripla no mesmo instante: o rotulo do botao dizia 10, a barra encolhia, o numero caia para 90 e o log escrevia 10. Quatro maneiras de contar a mesma coisa competindo pela atencao.
+
+**Sobre o rotulo do botao:** valor escrito no botao tambem envelhece mal. No dia em que o dano virar 12, ou variar por arma, o rotulo passa a mentir e ninguem lembra de trocar. Nome de acao nao envelhece.
