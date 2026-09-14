@@ -328,3 +328,35 @@ O modulo nao pode importar `EventManager`, porque o asmdef dele tem lista de ref
 **Escolha:** a integracao foi para a branch `feat/gerenciamento-de-vida` e vira pull request no repositorio do Vinicius.
 
 **Motivo:** o repositorio e do grupo e o `Player.cs` e arquivo de outra pessoa. Commit direto na main tira dele a chance de revisar uma mudanca que altera comportamento, mesmo que para melhor. O pull request deixa a discussao escrita, e a mudanca do `Heal` em jogador morto precisa ser vista por ele antes de entrar.
+
+---
+
+## D26 Sprite feito em codigo nao entra em prefab
+
+**Problema:** a barra de vida do slime ficava invisivel, sem erro nenhum no console.
+
+**Causa:** o script que monta o prefab atribuia os sprites com `UiSprites.Solido()`, que cria a imagem por codigo. Sprite nascido de `Sprite.Create` existe so em memoria, nao e arquivo do projeto, entao o prefab nao consegue guardar a referencia e ela vira nula ao salvar. O campo fica `fileID: 0` e o renderizador simplesmente nao tem o que desenhar.
+
+**Regra que fica:** imagem gerada por codigo tem que ser atribuida em tempo de execucao, no `Awake` de quem usa. Montar prefab com ela so funciona enquanto o editor esta aberto, o que e o pior tipo de bug: passa no teste da sessao e falha na proxima.
+
+**Onde isso ja estava certo por acaso:** o coracao do HUD e o corpo do slime sempre atribuiram no `Awake`. So a barra dependia do prefab, e so ela quebrou.
+
+---
+
+## D27 Quadro de animacao tambem precisa de validacao
+
+**Problema:** o boneco sumia por um quadro no meio do golpe.
+
+**Causa:** o recorte automatico das folhas de sprite deixou fatias soltas. O `combo_1` tem um quadro de 6 por 6 pixels e o `_end` tem um de 15 por 9 e outro de 9 por 7. Sao poeira do recorte, nao personagem. Tres dos dez quadros eram lixo.
+
+**Solucao:** o montador da animacao descarta quadro menor que 20 pixels de lado antes de montar o clipe. Corrige sem reeditar a arte, e continua valendo se alguem refizer o recorte.
+
+**Licao geral:** asset importado nao e dado confiavel. Vale a mesma desconfianca que se tem com entrada de usuario.
+
+---
+
+## D28 A barra de vida do inimigo aparece no impacto, sem fade de entrada
+
+**Escolha:** ao levar dano a barra vai para opacidade cheia no mesmo quadro. So o sumico e gradual.
+
+**Motivo:** entrar por fade atrasa a informacao justamente no instante em que ela importa. Pior: com o inimigo morrendo rapido, a barra podia nem terminar de aparecer antes de ele sumir. Sair devagar e bom, entrar devagar nao.
